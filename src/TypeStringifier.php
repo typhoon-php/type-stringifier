@@ -134,11 +134,6 @@ final class TypeStringifier implements TypeVisitor
         return 'class-string';
     }
 
-    public function visitCallableString(Type\CallableStringType $type): mixed
-    {
-        return 'callable-string';
-    }
-
     public function visitInterfaceString(Type\InterfaceStringType $type): mixed
     {
         return 'interface-string';
@@ -249,11 +244,6 @@ final class TypeStringifier implements TypeVisitor
         }
 
         return $this->stringifyGenericType('non-empty-array', [$type->keyType, $type->valueType]);
-    }
-
-    public function visitCallableArray(Type\CallableArrayType $type): mixed
-    {
-        return 'callable-array';
     }
 
     public function visitArray(Type\ArrayType $type): mixed
