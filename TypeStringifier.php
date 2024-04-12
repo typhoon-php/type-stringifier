@@ -23,7 +23,7 @@ use Typhoon\Type\Variance;
  */
 final class TypeStringifier implements TypeVisitor
 {
-    public function alias(Type $self, string $class, string $name, array $arguments): mixed
+    public function alias(Type $self, string $name, string $class, array $arguments): mixed
     {
         return $this->stringifyGenericType(sprintf('%s@%s', $name, $class), $arguments);
     }
