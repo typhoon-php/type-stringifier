@@ -283,6 +283,11 @@ final class TypeStringifier implements TypeVisitor
         return 'string';
     }
 
+    public function static(Type $self, string $class, array $arguments): mixed
+    {
+        return $this->stringifyGenericType('static@' . $class, $arguments);
+    }
+
     public function template(Type $self, string $name, AtClass|AtFunction|AtMethod $declaredAt, array $arguments): mixed
     {
         return $this->stringifyGenericType($name, $arguments) . '@' . match (true) {
