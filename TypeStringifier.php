@@ -152,11 +152,6 @@ final class TypeStringifier implements TypeVisitor
         return sprintf('int-mask-of<%s>', $type->accept($this));
     }
 
-    public function intRange(Type $self, ?int $min, ?int $max): mixed
-    {
-        return sprintf('int<%s, %s>', $min ?? 'min', $max ?? 'max');
-    }
-
     public function iterable(Type $self, Type $key, Type $value): mixed
     {
         if ($this->isMixed($key)) {
