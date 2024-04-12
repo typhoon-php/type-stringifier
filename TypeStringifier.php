@@ -118,7 +118,7 @@ final class TypeStringifier implements TypeVisitor
         return 'float';
     }
 
-    public function int(Type $self, ?int $min = null, ?int $max = null): mixed
+    public function int(Type $self, ?int $min, ?int $max): mixed
     {
         if ($min === null && $max === null) {
             return 'int';
@@ -372,7 +372,7 @@ final class TypeStringifier implements TypeVisitor
                     return 0b100;
                 }
 
-                public function int(Type $self, ?int $min = null, ?int $max = null): mixed
+                public function int(Type $self, ?int $min, ?int $max): mixed
                 {
                     if ($min === null && $max === null) {
                         return 0b001;
