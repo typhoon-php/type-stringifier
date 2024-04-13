@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Typhoon\TypeStringifier;
 
+use Typhoon\DeclarationId\AliasId;
+use Typhoon\DeclarationId\AnonymousClassId;
+use Typhoon\DeclarationId\ClassId;
+use Typhoon\DeclarationId\TemplateId;
 use Typhoon\Type\Argument;
 use Typhoon\Type\ArrayElement;
-use Typhoon\Type\At;
-use Typhoon\Type\AtClass;
-use Typhoon\Type\AtFunction;
-use Typhoon\Type\AtMethod;
 use Typhoon\Type\Parameter;
 use Typhoon\Type\Property;
 use Typhoon\Type\Type;
-use Typhoon\Type\types;
 use Typhoon\Type\TypeVisitor;
 use Typhoon\Type\Variance;
 use Typhoon\Type\Visitor\DefaultTypeVisitor;
@@ -25,9 +24,9 @@ use Typhoon\Type\Visitor\DefaultTypeVisitor;
  */
 final class TypeStringifier implements TypeVisitor
 {
-    public function alias(Type $self, string $name, string $class, array $arguments): mixed
+    public function alias(Type $self, AliasId $alias, array $arguments): mixed
     {
-        return $this->stringifyGenericType(sprintf('%s@%s', $name, $class), $arguments);
+        return $this->stringifyGenericType($alias->toString(), $arguments);
     }
 
     public function array(Type $self, Type $key, Type $value, array $elements): mixed
@@ -226,9 +225,9 @@ final class TypeStringifier implements TypeVisitor
         return 'mixed';
     }
 
-    public function namedObject(Type $self, string $class, array $arguments): mixed
+    public function namedObject(Type $self, ClassId|AnonymousClassId $class, array $arguments): mixed
     {
-        return $this->stringifyGenericType($class, $arguments);
+        return $this->stringifyGenericType($class->toString(), $arguments);
     }
 
     public function never(Type $self): mixed
@@ -285,20 +284,14 @@ final class TypeStringifier implements TypeVisitor
         return 'string';
     }
 
-    public function static(Type $self, string $class, array $arguments): mixed
+    public function static(Type $self, ClassId|AnonymousClassId $class, array $arguments): mixed
     {
         return $this->stringifyGenericType('static@' . $class, $arguments);
     }
 
-    public function template(Type $self, string $name, At|AtFunction|AtClass|AtMethod $declaredAt, array $arguments): mixed
+    public function template(Type $self, TemplateId $template): mixed
     {
-        return $this->stringifyGenericType($name, $arguments) . '@' . match (true) {
-            $declaredAt === types::atAnonymousFunction  => 'anonymous-function',
-            $declaredAt === types::atAnonymousClass  => 'anonymous-class',
-            $declaredAt instanceof AtFunction => $declaredAt->name . '()',
-            $declaredAt instanceof AtClass  => $declaredAt->name,
-            $declaredAt instanceof AtMethod  => sprintf('%s::%s()', $declaredAt->class, $declaredAt->name),
-        };
+        return $template->toString();
     }
 
     public function truthyString(Type $self): mixed
