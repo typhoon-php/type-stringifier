@@ -6,12 +6,14 @@ namespace Typhoon\TypeStringifier;
 
 use Typhoon\Type\Argument;
 use Typhoon\Type\ArrayElement;
+use Typhoon\Type\At;
 use Typhoon\Type\AtClass;
 use Typhoon\Type\AtFunction;
 use Typhoon\Type\AtMethod;
 use Typhoon\Type\Parameter;
 use Typhoon\Type\Property;
 use Typhoon\Type\Type;
+use Typhoon\Type\types;
 use Typhoon\Type\TypeVisitor;
 use Typhoon\Type\Variance;
 use Typhoon\Type\Visitor\DefaultTypeVisitor;
@@ -288,9 +290,11 @@ final class TypeStringifier implements TypeVisitor
         return $this->stringifyGenericType('static@' . $class, $arguments);
     }
 
-    public function template(Type $self, string $name, AtClass|AtFunction|AtMethod $declaredAt, array $arguments): mixed
+    public function template(Type $self, string $name, At|AtFunction|AtClass|AtMethod $declaredAt, array $arguments): mixed
     {
         return $this->stringifyGenericType($name, $arguments) . '@' . match (true) {
+            $declaredAt === types::atAnonymousFunction  => 'anonymous-function',
+            $declaredAt === types::atAnonymousClass  => 'anonymous-class',
             $declaredAt instanceof AtFunction => $declaredAt->name . '()',
             $declaredAt instanceof AtClass  => $declaredAt->name,
             $declaredAt instanceof AtMethod  => sprintf('%s::%s()', $declaredAt->class, $declaredAt->name),
