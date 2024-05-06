@@ -284,9 +284,37 @@ final class TypeStringifier implements TypeVisitor
         return 'string';
     }
 
-    public function static(Type $self, ClassId|AnonymousClassId $class, array $arguments): mixed
+    public function self(Type $self, null|ClassId|AnonymousClassId $resolvedClass, array $arguments): mixed
     {
-        return $this->stringifyGenericType('static@' . $class, $arguments);
+        $name = 'self';
+
+        if ($resolvedClass !== null) {
+            $name .= sprintf('(%s)', $resolvedClass->toString());
+        }
+
+        return $this->stringifyGenericType($name, $arguments);
+    }
+
+    public function parent(Type $self, ?ClassId $resolvedClass, array $arguments): mixed
+    {
+        $name = 'parent';
+
+        if ($resolvedClass !== null) {
+            $name .= sprintf('(%s)', $resolvedClass->toString());
+        }
+
+        return $this->stringifyGenericType($name, $arguments);
+    }
+
+    public function static(Type $self, null|ClassId|AnonymousClassId $resolvedClass, array $arguments): mixed
+    {
+        $name = 'static';
+
+        if ($resolvedClass !== null) {
+            $name .= sprintf('(%s)', $resolvedClass->toString());
+        }
+
+        return $this->stringifyGenericType($name, $arguments);
     }
 
     public function template(Type $self, TemplateId $template): mixed
