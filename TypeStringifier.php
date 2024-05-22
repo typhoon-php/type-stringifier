@@ -125,6 +125,10 @@ final class TypeStringifier implements TypeVisitor
             return 'int';
         }
 
+        if ($min !== null && $max === $min) {
+            return (string) $min;
+        }
+
         return sprintf('int<%s, %s>', $min ?? 'min', $max ?? 'max');
     }
 
@@ -202,22 +206,24 @@ final class TypeStringifier implements TypeVisitor
         return 'literal-' . $type->accept($this);
     }
 
-    public function literalValue(Type $self, bool|int|float|string $value): mixed
+    public function true(Type $self): mixed
     {
-        if ($value === true) {
-            return 'true';
-        }
+        return 'true';
+    }
 
-        if ($value === false) {
-            return 'false';
-        }
+    public function false(Type $self): mixed
+    {
+        return 'false';
+    }
 
-        if (\is_string($value)) {
-            return $this->escapeStringLiteral($value);
-        }
-
-        /** @psalm-var numeric-string */
+    public function floatValue(Type $self, float $value): mixed
+    {
         return (string) $value;
+    }
+
+    public function stringValue(Type $self, string $value): mixed
+    {
+        return $this->escapeStringLiteral($value);
     }
 
     public function mixed(Type $self): mixed
