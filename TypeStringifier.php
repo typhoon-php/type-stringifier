@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Typhoon\TypeStringifier;
 
 use Typhoon\DeclarationId\AliasId;
-use Typhoon\DeclarationId\AnonymousClassId;
 use Typhoon\DeclarationId\ClassId;
+use Typhoon\DeclarationId\NamedClassId;
 use Typhoon\DeclarationId\TemplateId;
 use Typhoon\Type\Argument;
 use Typhoon\Type\ArrayElement;
@@ -231,7 +231,7 @@ final class TypeStringifier implements TypeVisitor
         return 'mixed';
     }
 
-    public function namedObject(Type $self, ClassId|AnonymousClassId $class, array $arguments): mixed
+    public function namedObject(Type $self, ClassId $class, array $arguments): mixed
     {
         return $this->stringifyGenericType($class->toString(), $arguments);
     }
@@ -289,7 +289,7 @@ final class TypeStringifier implements TypeVisitor
         return 'string';
     }
 
-    public function self(Type $self, null|ClassId|AnonymousClassId $resolvedClass, array $arguments): mixed
+    public function self(Type $self, ?ClassId $resolvedClass, array $arguments): mixed
     {
         $name = 'self';
 
@@ -300,7 +300,7 @@ final class TypeStringifier implements TypeVisitor
         return $this->stringifyGenericType($name, $arguments);
     }
 
-    public function parent(Type $self, ?ClassId $resolvedClass, array $arguments): mixed
+    public function parent(Type $self, ?NamedClassId $resolvedClass, array $arguments): mixed
     {
         $name = 'parent';
 
@@ -311,7 +311,7 @@ final class TypeStringifier implements TypeVisitor
         return $this->stringifyGenericType($name, $arguments);
     }
 
-    public function static(Type $self, null|ClassId|AnonymousClassId $resolvedClass, array $arguments): mixed
+    public function static(Type $self, ?ClassId $resolvedClass, array $arguments): mixed
     {
         $name = 'static';
 
