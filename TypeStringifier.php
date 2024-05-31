@@ -6,6 +6,7 @@ namespace Typhoon\TypeStringifier;
 
 use Typhoon\DeclarationId\AliasId;
 use Typhoon\DeclarationId\ClassId;
+use Typhoon\DeclarationId\ConstantId;
 use Typhoon\DeclarationId\NamedClassId;
 use Typhoon\DeclarationId\TemplateId;
 use Typhoon\Type\Argument;
@@ -109,9 +110,9 @@ final class TypeStringifier implements TypeVisitor
         );
     }
 
-    public function constant(Type $self, string $name): mixed
+    public function constant(Type $self, ConstantId $constant): mixed
     {
-        return $name;
+        return sprintf('const<%s>', $constant->name);
     }
 
     public function float(Type $self): mixed
