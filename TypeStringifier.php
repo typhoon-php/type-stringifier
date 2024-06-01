@@ -295,7 +295,7 @@ final class TypeStringifier implements TypeVisitor
         $name = 'self';
 
         if ($resolvedClass !== null) {
-            $name .= sprintf('(%s)', $resolvedClass->toString());
+            $name .= '@' . $resolvedClass->name;
         }
 
         return $this->stringifyGenericType($name, $arguments);
@@ -306,7 +306,7 @@ final class TypeStringifier implements TypeVisitor
         $name = 'parent';
 
         if ($resolvedClass !== null) {
-            $name .= sprintf('(%s)', $resolvedClass->toString());
+            $name .= '@' . $resolvedClass->name;
         }
 
         return $this->stringifyGenericType($name, $arguments);
@@ -317,7 +317,7 @@ final class TypeStringifier implements TypeVisitor
         $name = 'static';
 
         if ($resolvedClass !== null) {
-            $name .= sprintf('(%s)', $resolvedClass->toString());
+            $name .= '@' . $resolvedClass->name;
         }
 
         return $this->stringifyGenericType($name, $arguments);
