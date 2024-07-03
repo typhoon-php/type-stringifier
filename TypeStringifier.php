@@ -56,11 +56,6 @@ final class TypeStringifier implements TypeVisitor
         );
     }
 
-    public function bool(Type $self): mixed
-    {
-        return 'bool';
-    }
-
     public function callable(Type $self, array $parameters, Type $return): mixed
     {
         return $this->stringifyCallable('callable', $parameters, $return);
@@ -92,11 +87,6 @@ final class TypeStringifier implements TypeVisitor
         }
 
         return sprintf('class-string<%s>', $class->accept($this));
-    }
-
-    public function closure(Type $self, array $parameters, Type $return): mixed
-    {
-        return $this->stringifyCallable('Closure', $parameters, $return);
     }
 
     public function conditional(Type $self, Argument|Type $subject, Type $if, Type $then, Type $else): mixed
@@ -252,9 +242,9 @@ final class TypeStringifier implements TypeVisitor
         return 'null';
     }
 
-    public function numericString(Type $self): mixed
+    public function numeric(Type $self): mixed
     {
-        return 'numeric-string';
+        return 'numeric';
     }
 
     public function object(Type $self, array $properties): mixed
@@ -328,9 +318,9 @@ final class TypeStringifier implements TypeVisitor
         return $template->toString();
     }
 
-    public function truthyString(Type $self): mixed
+    public function truthy(Type $self): mixed
     {
-        return 'truthy-string';
+        return 'truthy';
     }
 
     public function union(Type $self, array $types): mixed
