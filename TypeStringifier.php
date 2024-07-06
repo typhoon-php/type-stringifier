@@ -23,23 +23,25 @@ use Typhoon\Type\Visitor\DefaultTypeVisitor;
  * @psalm-internal Typhoon\TypeStringifier
  * @implements TypeVisitor<non-empty-string>
  */
-final class TypeStringifier implements TypeVisitor
+enum TypeStringifier implements TypeVisitor
 {
-    public function alias(Type $self, AliasId $alias, array $arguments): mixed
+    case Instance;
+
+    public function alias(Type $type, AliasId $alias, array $typeArguments): mixed
     {
-        return $this->stringifyGenericType($alias->toString(), $arguments);
+        return $this->stringifyGenericType($alias->toString(), $typeArguments);
     }
 
-    public function array(Type $self, Type $key, Type $value, array $elements): mixed
+    public function array(Type $type, Type $keyType, Type $valueType, array $elements): mixed
     {
-        $keyString = $key->accept($this);
-        $valueString = $value->accept($this);
+        $key = $keyType->accept($this);
+        $value = $valueType->accept($this);
 
         if ($elements === []) {
-            return 'array' . match ($valueString) {
+            return 'array' . match ($value) {
                 'never' => '{}',
-                'mixed' => $keyString === 'int|string' ? '' : "<{$keyString}, mixed>",
-                default => $keyString === 'int|string' ? "<{$valueString}>" : "<{$keyString}, {$valueString}>",
+                'mixed' => $key === 'int|string' ? '' : "<{$key}, mixed>",
+                default => $key === 'int|string' ? "<{$value}>" : "<{$key}, {$value}>",
             };
         }
 
@@ -59,17 +61,17 @@ final class TypeStringifier implements TypeVisitor
                 array_keys($elements),
                 $elements,
             )),
-            match ($valueString) {
+            match ($value) {
                 'never' => '',
-                'mixed' => $keyString === 'int|string' ? ', ...' : ", ...<{$keyString}, mixed>",
-                default => $keyString === 'int|string' ? ", ...<{$valueString}>" : ", ...<{$keyString}, {$valueString}>",
+                'mixed' => $key === 'int|string' ? ', ...' : ", ...<{$key}, mixed>",
+                default => $key === 'int|string' ? ", ...<{$value}>" : ", ...<{$key}, {$value}>",
             },
         );
     }
 
-    public function callable(Type $self, array $parameters, Type $return): mixed
+    public function callable(Type $type, array $parameters, Type $returnType): mixed
     {
-        $returnString = $return->accept($this);
+        $returnString = $returnType->accept($this);
 
         if ($parameters === [] && $returnString === 'mixed') {
             return 'callable';
@@ -89,21 +91,21 @@ final class TypeStringifier implements TypeVisitor
         );
     }
 
-    public function classConstant(Type $self, Type $class, string $name): mixed
+    public function classConstant(Type $type, Type $classType, string $name): mixed
     {
-        return sprintf('%s::%s', $class->accept($this), $name);
+        return sprintf('%s::%s', $classType->accept($this), $name);
     }
 
-    public function classString(Type $self, Type $class): mixed
+    public function classString(Type $type, Type $classType): mixed
     {
-        $isObject = $class->accept(
+        $isObject = $classType->accept(
             new /** @extends DefaultTypeVisitor<bool> */ class () extends DefaultTypeVisitor {
-                public function object(Type $self, array $properties): mixed
+                public function object(Type $type, array $properties): mixed
                 {
                     return true;
                 }
 
-                protected function default(Type $self): mixed
+                protected function default(Type $type): mixed
                 {
                     return false;
                 }
@@ -114,31 +116,31 @@ final class TypeStringifier implements TypeVisitor
             return 'class-string';
         }
 
-        return sprintf('class-string<%s>', $class->accept($this));
+        return sprintf('class-string<%s>', $classType->accept($this));
     }
 
-    public function conditional(Type $self, Argument|Type $subject, Type $if, Type $then, Type $else): mixed
+    public function conditional(Type $type, Argument|Type $subject, Type $ifType, Type $thenType, Type $elseType): mixed
     {
         return sprintf(
             '(%s is %s ? %s : %s)',
             $subject instanceof Argument ? '$' . $subject->name : $subject->accept($this),
-            $if->accept($this),
-            $then->accept($this),
-            $else->accept($this),
+            $ifType->accept($this),
+            $thenType->accept($this),
+            $elseType->accept($this),
         );
     }
 
-    public function constant(Type $self, ConstantId $constant): mixed
+    public function constant(Type $type, ConstantId $constant): mixed
     {
         return sprintf('const<%s>', $constant->name);
     }
 
-    public function float(Type $self): mixed
+    public function float(Type $type): mixed
     {
         return 'float';
     }
 
-    public function int(Type $self, ?int $min, ?int $max): mixed
+    public function int(Type $type, ?int $min, ?int $max): mixed
     {
         if ($min === null && $max === null) {
             return 'int';
@@ -151,15 +153,15 @@ final class TypeStringifier implements TypeVisitor
         return sprintf('int<%s, %s>', $min ?? 'min', $max ?? 'max');
     }
 
-    public function intersection(Type $self, array $types): mixed
+    public function intersection(Type $type, array $ofTypes): mixed
     {
         $isUnion = new /** @extends DefaultTypeVisitor<bool> */ class () extends DefaultTypeVisitor {
-            public function union(Type $self, array $types): mixed
+            public function union(Type $type, array $ofTypes): mixed
             {
                 return true;
             }
 
-            protected function default(Type $self): mixed
+            protected function default(Type $type): mixed
             {
                 return false;
             }
@@ -167,7 +169,7 @@ final class TypeStringifier implements TypeVisitor
 
         $string = implode('&', array_map(
             fn(Type $type): string => $type->accept($isUnion) ? sprintf('(%s)', $type->accept($this)) : $type->accept($this),
-            $types,
+            $ofTypes,
         ));
 
         /** @var non-empty-string */
@@ -180,41 +182,41 @@ final class TypeStringifier implements TypeVisitor
         ]);
     }
 
-    public function intMask(Type $self, Type $type): mixed
+    public function intMask(Type $type, Type $ofType): mixed
     {
-        return sprintf('int-mask-of<%s>', $type->accept($this));
+        return sprintf('int-mask-of<%s>', $ofType->accept($this));
     }
 
-    public function iterable(Type $self, Type $key, Type $value): mixed
+    public function iterable(Type $type, Type $keyType, Type $valueType): mixed
     {
-        $keyString = $key->accept($this);
-        $valueString = $value->accept($this);
+        $key = $keyType->accept($this);
+        $value = $valueType->accept($this);
 
-        if ($keyString === 'mixed') {
-            if ($valueString === 'mixed') {
+        if ($key === 'mixed') {
+            if ($value === 'mixed') {
                 return 'iterable';
             }
 
-            return "iterable<{$valueString}>";
+            return "iterable<{$value}>";
         }
 
-        return "iterable<{$keyString}, {$valueString}>";
+        return "iterable<{$key}, {$value}>";
     }
 
-    public function key(Type $self, Type $type): mixed
+    public function key(Type $type, Type $arrayType): mixed
     {
-        return $this->stringifyGenericType('key-of', [$type]);
+        return $this->stringifyGenericType('key-of', [$arrayType]);
     }
 
-    public function list(Type $self, Type $value, array $elements): mixed
+    public function list(Type $type, Type $valueType, array $elements): mixed
     {
-        $valueString = $value->accept($this);
+        $value = $valueType->accept($this);
 
         if ($elements === []) {
-            return 'list' . match ($valueString) {
+            return 'list' . match ($value) {
                 'never' => '{}',
                 'mixed' => '',
-                default => "<{$valueString}>",
+                default => "<{$value}>",
             };
         }
 
@@ -234,65 +236,65 @@ final class TypeStringifier implements TypeVisitor
                 array_keys($elements),
                 $elements,
             )),
-            match ($valueString) {
+            match ($value) {
                 'never' => '',
                 'mixed' => ', ...',
-                default => ", ...<{$valueString}>",
+                default => ", ...<{$value}>",
             },
         );
     }
 
-    public function literal(Type $self, Type $type): mixed
+    public function literal(Type $type, Type $ofType): mixed
     {
-        return 'literal-' . $type->accept($this);
+        return 'literal-' . $ofType->accept($this);
     }
 
-    public function true(Type $self): mixed
+    public function true(Type $type): mixed
     {
         return 'true';
     }
 
-    public function false(Type $self): mixed
+    public function false(Type $type): mixed
     {
         return 'false';
     }
 
-    public function floatValue(Type $self, float $value): mixed
+    public function floatValue(Type $type, float $value): mixed
     {
         return (string) $value;
     }
 
-    public function stringValue(Type $self, string $value): mixed
+    public function stringValue(Type $type, string $value): mixed
     {
         return $this->escapeStringLiteral($value);
     }
 
-    public function lowercaseString(Type $self): mixed
+    public function lowercaseString(Type $type): mixed
     {
         return 'lowercase-string';
     }
 
-    public function mixed(Type $self): mixed
+    public function mixed(Type $type): mixed
     {
         return 'mixed';
     }
 
-    public function namedObject(Type $self, ClassId $class, array $arguments): mixed
+    public function namedObject(Type $type, ClassId $class, array $typeArguments): mixed
     {
-        return $this->stringifyGenericType($class->toString(), $arguments);
+        return $this->stringifyGenericType($class->toString(), $typeArguments);
     }
 
-    public function never(Type $self): mixed
+    public function never(Type $type): mixed
     {
         return 'never';
     }
 
-    public function null(Type $self): mixed
+    public function null(Type $type): mixed
     {
         return 'null';
     }
 
-    public function object(Type $self, array $properties): mixed
+    public function object(Type $type, array $properties): mixed
     {
         if ($properties === []) {
             return 'object';
@@ -310,32 +312,32 @@ final class TypeStringifier implements TypeVisitor
         )));
     }
 
-    public function offset(Type $self, Type $type, Type $offset): mixed
+    public function offset(Type $type, Type $arrayType, Type $keyType): mixed
     {
-        return sprintf('%s[%s]', $type->accept($this), $offset->accept($this));
+        return sprintf('%s[%s]', $arrayType->accept($this), $keyType->accept($this));
     }
 
-    public function resource(Type $self): mixed
+    public function resource(Type $type): mixed
     {
         return 'resource';
     }
 
-    public function string(Type $self): mixed
+    public function string(Type $type): mixed
     {
         return 'string';
     }
 
-    public function numeric(Type $self): mixed
+    public function numeric(Type $type): mixed
     {
         return 'numeric';
     }
 
-    public function not(Type $self, Type $type): mixed
+    public function not(Type $type, Type $ofType): mixed
     {
-        return '!' . $type->accept($this);
+        return '!' . $ofType->accept($this);
     }
 
-    public function self(Type $self, ?ClassId $resolvedClass, array $arguments): mixed
+    public function self(Type $type, ?ClassId $resolvedClass, array $typeArguments): mixed
     {
         $name = 'self';
 
@@ -343,10 +345,10 @@ final class TypeStringifier implements TypeVisitor
             $name .= '@' . $resolvedClass->name;
         }
 
-        return $this->stringifyGenericType($name, $arguments);
+        return $this->stringifyGenericType($name, $typeArguments);
     }
 
-    public function parent(Type $self, ?NamedClassId $resolvedClass, array $arguments): mixed
+    public function parent(Type $type, ?NamedClassId $resolvedClass, array $typeArguments): mixed
     {
         $name = 'parent';
 
@@ -354,10 +356,10 @@ final class TypeStringifier implements TypeVisitor
             $name .= '@' . $resolvedClass->name;
         }
 
-        return $this->stringifyGenericType($name, $arguments);
+        return $this->stringifyGenericType($name, $typeArguments);
     }
 
-    public function static(Type $self, ?ClassId $resolvedClass, array $arguments): mixed
+    public function static(Type $type, ?ClassId $resolvedClass, array $typeArguments): mixed
     {
         $name = 'static';
 
@@ -365,23 +367,23 @@ final class TypeStringifier implements TypeVisitor
             $name .= '@' . $resolvedClass->name;
         }
 
-        return $this->stringifyGenericType($name, $arguments);
+        return $this->stringifyGenericType($name, $typeArguments);
     }
 
-    public function template(Type $self, TemplateId $template): mixed
+    public function template(Type $type, TemplateId $template): mixed
     {
         return $template->toString();
     }
 
-    public function union(Type $self, array $types): mixed
+    public function union(Type $type, array $ofTypes): mixed
     {
         $isIntersection = new /** @extends DefaultTypeVisitor<bool> */ class () extends DefaultTypeVisitor {
-            public function intersection(Type $self, array $types): mixed
+            public function intersection(Type $type, array $ofTypes): mixed
             {
                 return true;
             }
 
-            protected function default(Type $self): mixed
+            protected function default(Type $type): mixed
             {
                 return false;
             }
@@ -389,7 +391,7 @@ final class TypeStringifier implements TypeVisitor
 
         $string = implode('|', array_map(
             fn(Type $type): string => $type->accept($isIntersection) ? sprintf('(%s)', $type->accept($this)) : $type->accept($this),
-            $types,
+            $ofTypes,
         ));
 
         /** @var non-empty-string */
@@ -399,7 +401,7 @@ final class TypeStringifier implements TypeVisitor
         ]);
     }
 
-    public function varianceAware(Type $self, Type $type, Variance $variance): mixed
+    public function varianceAware(Type $type, Type $ofType, Variance $variance): mixed
     {
         return sprintf(
             '%s %s',
@@ -409,11 +411,11 @@ final class TypeStringifier implements TypeVisitor
                 Variance::Covariant => 'covariant',
                 Variance::Invariant => 'invariant',
             },
-            $type->accept($this),
+            $ofType->accept($this),
         );
     }
 
-    public function void(Type $self): mixed
+    public function void(Type $type): mixed
     {
         return 'void';
     }
