@@ -96,6 +96,11 @@ enum TypeStringifier implements TypeVisitor
         return sprintf('%s::%s', $classType->accept($this), $name);
     }
 
+    public function classConstantMask(Type $type, Type $classType, string $namePrefix): mixed
+    {
+        return sprintf('%s::%s*', $classType->accept($this), $namePrefix);
+    }
+
     public function classString(Type $type, Type $classType): mixed
     {
         $isObject = $classType->accept(
