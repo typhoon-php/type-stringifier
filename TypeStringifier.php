@@ -10,9 +10,8 @@ use Typhoon\DeclarationId\ConstantId;
 use Typhoon\DeclarationId\NamedClassId;
 use Typhoon\DeclarationId\TemplateId;
 use Typhoon\Type\Argument;
-use Typhoon\Type\ArrayElement;
 use Typhoon\Type\Parameter;
-use Typhoon\Type\Property;
+use Typhoon\Type\ShapeElement;
 use Typhoon\Type\Type;
 use Typhoon\Type\TypeVisitor;
 use Typhoon\Type\Variance;
@@ -48,7 +47,7 @@ enum TypeStringifier implements TypeVisitor
         return sprintf(
             'array{%s%s}',
             implode(', ', array_map(
-                function (int|string $key, ArrayElement $element) use ($elements): string {
+                function (int|string $key, ShapeElement $element) use ($elements): string {
                     /** @var ?bool */
                     static $isList = null;
 
@@ -228,7 +227,7 @@ enum TypeStringifier implements TypeVisitor
         return sprintf(
             'list{%s%s}',
             implode(', ', array_map(
-                function (int $key, ArrayElement $element) use ($elements): string {
+                function (int $key, ShapeElement $element) use ($elements): string {
                     /** @var ?bool */
                     static $isList = null;
 
@@ -306,7 +305,7 @@ enum TypeStringifier implements TypeVisitor
         }
 
         return sprintf('object{%s}', implode(', ', array_map(
-            fn(string $name, Property $property): string => sprintf(
+            fn(string $name, ShapeElement $property): string => sprintf(
                 '%s%s: %s',
                 $this->stringifyKey($name),
                 $property->optional ? '?' : '',
