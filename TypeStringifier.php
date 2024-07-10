@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Typhoon\TypeStringifier;
 
 use Typhoon\DeclarationId\AliasId;
-use Typhoon\DeclarationId\ClassId;
+use Typhoon\DeclarationId\AnonymousClassId;
 use Typhoon\DeclarationId\ConstantId;
 use Typhoon\DeclarationId\NamedClassId;
 use Typhoon\DeclarationId\TemplateId;
@@ -341,12 +341,12 @@ enum TypeStringifier implements TypeVisitor
         return '!' . $ofType->accept($this);
     }
 
-    public function self(Type $type, ?ClassId $resolvedClass, array $typeArguments): mixed
+    public function self(Type $type, null|NamedClassId|AnonymousClassId $resolvedClass, array $typeArguments): mixed
     {
         $name = 'self';
 
         if ($resolvedClass !== null) {
-            $name .= '@' . $resolvedClass->name;
+            $name .= '@' . $resolvedClass->toString();
         }
 
         return $this->stringifyGenericType($name, $typeArguments);
@@ -357,18 +357,18 @@ enum TypeStringifier implements TypeVisitor
         $name = 'parent';
 
         if ($resolvedClass !== null) {
-            $name .= '@' . $resolvedClass->name;
+            $name .= '@' . $resolvedClass->toString();
         }
 
         return $this->stringifyGenericType($name, $typeArguments);
     }
 
-    public function static(Type $type, ?ClassId $resolvedClass, array $typeArguments): mixed
+    public function static(Type $type, null|NamedClassId|AnonymousClassId $resolvedClass, array $typeArguments): mixed
     {
         $name = 'static';
 
         if ($resolvedClass !== null) {
-            $name .= '@' . $resolvedClass->name;
+            $name .= '@' . $resolvedClass->toString();
         }
 
         return $this->stringifyGenericType($name, $typeArguments);
