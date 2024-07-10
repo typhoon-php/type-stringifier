@@ -283,7 +283,7 @@ enum TypeStringifier implements TypeVisitor
         return 'mixed';
     }
 
-    public function namedObject(Type $type, ClassId $class, array $typeArguments): mixed
+    public function namedObject(Type $type, NamedClassId $class, array $typeArguments): mixed
     {
         return $this->stringifyGenericType($class->toString(), $typeArguments);
     }
