@@ -24,5 +24,6 @@
     "config": {
         "lock": false,
         "vendor-dir": "../../var/TypeStringifier/vendor"
-    }
+    },
+    "abandoned": "typhoon/type"
 }
