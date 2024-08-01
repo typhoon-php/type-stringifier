@@ -1,6 +1,3 @@
-# [Typhoon Type Stringifier](https://github.com/typhoon-php/typhoon/blob/0.3.x/docs/TypeStringifier.md)
+# Typhoon Type Stringifier
 
-This repository is a readonly Typhoon monorepo subsplit.
-Please, open pull requests and issues in the [main repository](https://github.com/typhoon-php/typhoon).
-
-Read [documentation](https://github.com/typhoon-php/typhoon/blob/0.3.x/docs/TypeStringifier.md).
+Deprecated! Use [`Typhoon\Type\stringify()`](https://github.com/typhoon-php/typhoon/blob/0.4.x/docs/type.md#printing-types) instead.
